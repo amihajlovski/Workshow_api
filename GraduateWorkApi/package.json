@@ -1,0 +1,28 @@
+{
+  "name" : "basicApi",
+  "version" : "0.0.1",
+  "main" : "./app.js",
+  "author" : {
+    "name" : "Aleksandar Mihajlovski",
+    "email" : "a.mihajlovski91@gmail.com"
+  },
+  "keywords" : [ ],
+  "licenses" : {
+    "type" : "none"
+  },
+  "repository" : {
+    "type" : "git",
+    "url" : "git://github.com/amihajlovski/basicApi.git"
+  },
+  "bugs" : {
+    "url" : "http://github.com/amihajlovski/basicApi/issues"
+  },
+  "dependencies" : {
+    "body-parser" : "^1.6.4",
+    "express" : "^4.8.4",
+    "guid" : "0.0.12",
+    "mongodb" : "latest",
+    "validator" : "latest",
+    "unirest": "latest"
+  }
+}

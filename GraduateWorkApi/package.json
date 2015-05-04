@@ -23,6 +23,7 @@
     "guid" : "0.0.12",
     "mongodb" : "latest",
     "validator" : "latest",
-    "unirest": "latest"
+    "unirest": "latest",
+    "moment": "latest"
   }
 }

@@ -23,7 +23,13 @@ module.exports = function(app) {
 };
 
 function setUpRoutes(router){
-
+    //Artist
     router.route('/artist/register').post(controller.user.artistRegister);
+
+    //Manager
+    router.route('/manager/register').post(controller.user.managerRegister);
+
+    //Common
+    router.route('/user/login').post(controller.user.userLogin);
 
 }

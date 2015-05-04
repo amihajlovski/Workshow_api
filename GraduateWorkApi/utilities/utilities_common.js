@@ -1,7 +1,12 @@
 
+var moment = require("moment");
+var validator = require("validator");
 
 exports.generateValidResponse = generateValidResponse;
 exports.generateInvalidResponse = generateInvalidResponse;
+
+exports.moment = moment;
+exports.validator = validator;
 
 function generateValidResponse(data){
     return {

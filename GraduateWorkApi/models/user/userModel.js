@@ -46,8 +46,8 @@ function createUserDocument(user, isArtist, isManager){
         "Type": "user",
         "Manager": isManager,
         "Artist": isArtist,
-        "Name": user.Name || user.first_name,
-        "Surname": user.Surname || user.last_name,
+        "Name": user.Name || user.first_name || user.given_name,
+        "Surname": user.Surname || user.last_name || user.family_name,
         "Email": user.Email || user.email,
         "Password": user.Password || null
     };

@@ -32,7 +32,7 @@ function userLogin(req, res){
         loginWithFacebook(req, res);
     } else
     if(model.user.validateLogin(req.body, "G_token")){
-
+        loginWithGoogle(req,res);
     } else
     if(model.user.validateLogin(req.body, "Email")){
         processLogin(req.body, res);
@@ -92,30 +92,13 @@ function processLogin(user, res){
 function loginWithFacebook(req, res){
     var newuser = req.body;
     var fb_url = configuration.content.FACEBOOK_GRAPH_API.replace("$token", newuser.Fb_token);
-    var get_fb_url_request = unirest.get(fb_url);
-    get_fb_url_request.headers({
-        'Accepts': 'application/json'
-    }).end(function(response) {
-        var fb_response = JSON.parse(response.body);
-        if(fb_response.hasOwnProperty("error"))
-            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
-        else {
-            model.user.doesUserExist(fb_response.email, null, function(userExist, userDoc){
-                if(userExist){
-                    generateAuthTokenSession(userDoc, res);
-                } else {
-                    fb_response.isArtist = req.isArtist;
-                    fb_response.isManager = req.isManager;
-                    model.user.addNewUser(fb_response, function(err, newUserDoc){
-                        if(err==null) {
-                            generateAuthTokenSession(newUserDoc.ops[0], res);
-                        } else
-                            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
-                    });
-                }
-            });
-        }
-    });
+    processSocialLoginRequest(fb_url, "facebook", req, res)
+}
+
+function loginWithGoogle(req, res){
+    var newuser = req.body;
+    var g_url = configuration.content.GOOGLE_URL.replace("$token", newuser.G_token);
+    processSocialLoginRequest(g_url, "google", req, res)
 }
 
 function generateAuthTokenSession(newUserDoc, res){
@@ -124,5 +107,32 @@ function generateAuthTokenSession(newUserDoc, res){
             return res.json(utilities.generateValidResponse(token));
         else
             return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
+    });
+}
+
+function processSocialLoginRequest(url, social, req, res){
+    var get_url_request = unirest.get(url);
+    get_url_request.headers({
+        'Accepts': 'application/json'
+    }).end(function(response) {
+        var slResponse = social == "facebook" ? JSON.parse(response.body) : response.body;
+        if(slResponse.hasOwnProperty("error") || !slResponse)
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
+        else {
+            model.user.doesUserExist(slResponse.email, null, function(userExist, userDoc){
+                if(userExist){
+                    generateAuthTokenSession(userDoc, res);
+                } else {
+                    slResponse.isArtist = req.isArtist;
+                    slResponse.isManager = req.isManager;
+                    model.user.addNewUser(slResponse, function(err, newUserDoc){
+                        if(err==null) {
+                            generateAuthTokenSession(newUserDoc.ops[0], res);
+                        } else
+                            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
+                    });
+                }
+            });
+        }
     });
 }

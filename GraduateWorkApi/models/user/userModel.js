@@ -12,6 +12,7 @@ exports.addNewUser = addNewUser;
 exports.validateLoginInput = validateLoginInput;
 exports.createTokenData = createTokenData;
 exports.generateTokenData = generateTokenData;
+exports.validateLogin  = validateLogin;
 
 function doesUserExist(email, password, postback){
     var query = password==null ? { Email: email } : { Email: email, Password: password};
@@ -29,10 +30,9 @@ function validateRegisterInput(user){
     return false;
 }
 
-function addNewUser(req, postback){
-    var userInfo = req.body;
-    var isArtist = req.isArtist;
-    var isManager = req.isManager;
+function addNewUser(userInfo, postback){
+    var isArtist = userInfo.isArtist;
+    var isManager = userInfo.isManager;
     db_manager.users.insert(createUserDocument(userInfo, isArtist, isManager), function(err, user){
         if(err==null)
             postback(null, user);
@@ -46,10 +46,10 @@ function createUserDocument(user, isArtist, isManager){
         "Type": "user",
         "Manager": isManager,
         "Artist": isArtist,
-        "Name": user.Name,
-        "Surname": user.Surname,
-        "Email": user.Email,
-        "Password": user.Password
+        "Name": user.Name || user.first_name,
+        "Surname": user.Surname || user.last_name,
+        "Email": user.Email || user.email,
+        "Password": user.Password || null
     };
 }
 
@@ -77,4 +77,10 @@ function createTokenData(){
         Expiration: moment().add(1, "hour").valueOf(),
         Info: guid.create().value
     };
+}
+
+function validateLogin(user, type){
+    if(user.hasOwnProperty(type))
+        return user[type] != "" && !validator.isNull(user[type]);
+    return false;
 }

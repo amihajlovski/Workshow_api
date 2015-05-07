@@ -25,11 +25,10 @@ module.exports = function(app) {
 function setUpRoutes(router){
     //Artist
     router.route('/artist/register').post(controller.user.artistRegister);
+    router.route('/artist/login').post(controller.user.artistLogin);
 
     //Manager
     router.route('/manager/register').post(controller.user.managerRegister);
-
-    //Common
-    router.route('/user/login').post(controller.user.userLogin);
+    router.route('/manager/login').post(controller.user.managerLogin);
 
 }

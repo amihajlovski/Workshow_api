@@ -24,6 +24,7 @@
     "mongodb" : "latest",
     "validator" : "latest",
     "unirest": "latest",
-    "moment": "latest"
+    "moment": "latest",
+    "unirest": "latest"
   }
 }

@@ -6,4 +6,6 @@ content.RESPONSE_ERROR_WRONG_PARAMETERS = { "Code" : -2, "Message" : "Wrong para
 
 content.RESPONSE_ERROR_USER_EXIST = { "Code" : -3, "Message" : "User already exist." };
 content.RESPONSE_ERROR_USER_DOESNT_EXIST = { "Code" : -4, "Message" : "User doesn't exist. Wrong e-mail or password." };
+content.RESPONSE_ERROR_NO_USERS_FOUND = { "Code" : -5, "Message" : "No users found satisfying search criteria." };
+
 

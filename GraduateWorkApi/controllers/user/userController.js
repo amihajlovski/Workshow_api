@@ -7,6 +7,8 @@ var model = require("../../models/models.js");
 var configuration = require("../../configuration/configuration.js");
 var unirest = require('unirest');
 
+var sensitiveInfo = ["_id", "Type", "Password", "Tokens"];
+
 //Manager
 exports.managerRegister = managerRegister;
 exports.managerLogin = managerLogin;
@@ -14,6 +16,9 @@ exports.managerLogin = managerLogin;
 //Artist
 exports.artistRegister = artistRegister;
 exports.artistLogin = artistLogin;
+
+//Common
+exports.getUserInfoByUserIDs = getUserInfoByUserIDs;
 
 function artistLogin(req, res){
     req.isArtist = true;
@@ -60,14 +65,7 @@ function userRegister(req, res){
                 return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_USER_EXIST));
             else {
                 var newUser = req.body;
-                newUser.isArtist = req.isArtist;
-                newUser.isManager = req.isManager;
-                model.user.addNewUser(newUser, function(err, user){
-                    if(err==null)
-                        return res.json(utilities.generateValidResponse({}));
-                    else
-                        return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
-                });
+                createNewUserAndProcessAuthToken(newUser, req, res);
             }
         });
     } else {
@@ -123,16 +121,34 @@ function processSocialLoginRequest(url, social, req, res){
                 if(userExist){
                     generateAuthTokenSession(userDoc, res);
                 } else {
-                    slResponse.isArtist = req.isArtist;
-                    slResponse.isManager = req.isManager;
-                    model.user.addNewUser(slResponse, function(err, newUserDoc){
-                        if(err==null) {
-                            generateAuthTokenSession(newUserDoc.ops[0], res);
-                        } else
-                            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
-                    });
+                    createNewUserAndProcessAuthToken(slResponse, req, res);
                 }
             });
         }
     });
+}
+
+function createNewUserAndProcessAuthToken(newUser, req, res){
+    newUser.isArtist = req.isArtist;
+    newUser.isManager = req.isManager;
+    model.user.addNewUser(newUser, function(err, user){
+        if(err==null)
+            generateAuthTokenSession(user.ops[0], res);
+        else
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
+    });
+}
+
+function getUserInfoByUserIDs(req, res){
+    if(!req.params.hasOwnProperty("userIDs"))
+        return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_WRONG_PARAMETERS));
+    else {
+        var userIDs = utilities.generateObjectIDArray(req.params.userIDs.split(','));
+        model.user.getUsersInfo(userIDs, function(err, docs){
+            if(err==null && docs)
+                return res.json(utilities.generateValidResponse(utilities.filterData(docs, sensitiveInfo)));
+            else
+                return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_NO_USERS_FOUND));
+        })
+    }
 }

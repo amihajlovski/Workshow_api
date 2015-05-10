@@ -23,6 +23,7 @@ module.exports = function(app) {
 };
 
 function setUpRoutes(router){
+
     //Artist
     router.route('/artist/register').post(controller.user.artistRegister);
     router.route('/artist/login').post(controller.user.artistLogin);
@@ -30,5 +31,8 @@ function setUpRoutes(router){
     //Manager
     router.route('/manager/register').post(controller.user.managerRegister);
     router.route('/manager/login').post(controller.user.managerLogin);
+
+    //Common
+    router.route('/user/:userIDs').get(controller.user.getUserInfoByUserIDs);
 
 }

@@ -5,6 +5,8 @@ var validator = require("validator");
 var moment = require("moment");
 var guid = require("guid");
 var db_manager = require("../../models/db_manager.js");
+var utilities = require("../../utilities/utilities_common.js");
+var mongo = require("mongodb");
 
 exports.doesUserExist = doesUserExist;
 exports.validRegisterInput = validateRegisterInput;
@@ -13,6 +15,7 @@ exports.validateLoginInput = validateLoginInput;
 exports.createTokenData = createTokenData;
 exports.generateTokenData = generateTokenData;
 exports.validateLogin  = validateLogin;
+exports.getUsersInfo = getUsersInfo;
 
 function doesUserExist(email, password, postback){
     var query = password==null ? { Email: email } : { Email: email, Password: password};
@@ -83,4 +86,13 @@ function validateLogin(user, type){
     if(user.hasOwnProperty(type))
         return user[type] != "" && !validator.isNull(user[type]);
     return false;
+}
+
+function getUsersInfo(ids, postback){
+    db_manager.users.find({'_id': {$in: ids}}).toArray(function(err, users){
+        if(err==null && users.length > 0)
+            postback(null, users);
+        else
+            postback(err, null);
+    });
 }

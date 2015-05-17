@@ -1,5 +1,5 @@
 {
-  "name" : "basicApi",
+  "name" : "GraduateWorkApi",
   "version" : "0.0.1",
   "main" : "./app.js",
   "author" : {
@@ -12,10 +12,10 @@
   },
   "repository" : {
     "type" : "git",
-    "url" : "git://github.com/amihajlovski/basicApi.git"
+    "url" : "https://github.com/amihajlovski/GraduateWork.git"
   },
   "bugs" : {
-    "url" : "http://github.com/amihajlovski/basicApi/issues"
+    "url" : "https://github.com/amihajlovski/GraduateWork/issues"
   },
   "dependencies" : {
     "body-parser" : "^1.6.4",

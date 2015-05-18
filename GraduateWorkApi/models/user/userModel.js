@@ -5,8 +5,6 @@ var validator = require("validator");
 var moment = require("moment");
 var guid = require("guid");
 var db_manager = require("../../models/db_manager.js");
-var utilities = require("../../utilities/utilities_common.js");
-var mongo = require("mongodb");
 
 exports.doesUserExist = doesUserExist;
 exports.validRegisterInput = validateRegisterInput;

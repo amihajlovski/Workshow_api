@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var express = require('express');
 var router = express.Router();
 var controller = require("../controllers/controllers.js");
+var authenticate = require("../controllers/authtentication.js");
 
 module.exports = function(app) {
     app.use(bodyParser.urlencoded({ extended: false }));
@@ -33,6 +34,8 @@ function setUpRoutes(router){
     router.route('/manager/login').post(controller.user.managerLogin);
 
     //Common
-    router.route('/user/:userIDs').get(controller.user.getUserInfoByUserIDs);
+    router.route('/user/info').get(authenticate.check, controller.user.getUserByToken);
+    //router.route('/user/:userIDs').get(authenticate.check, controller.user.getUserInfoByUserIDs);
+
 
 }

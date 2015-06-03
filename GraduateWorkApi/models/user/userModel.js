@@ -4,7 +4,9 @@
 var validator = require("validator");
 var moment = require("moment");
 var guid = require("guid");
+var utilities = require('../../utilities/utilities_common.js');
 var db_manager = require("../../models/db_manager.js");
+var ObjectID = require("mongodb").ObjectId;
 
 exports.doesUserExist = doesUserExist;
 exports.validRegisterInput = validateRegisterInput;
@@ -14,6 +16,10 @@ exports.createTokenData = createTokenData;
 exports.generateTokenData = generateTokenData;
 exports.validateLogin  = validateLogin;
 exports.getUsersInfo = getUsersInfo;
+exports.getUserByAuthToken = getUserByAuthToken;
+exports.updateUserToken = updateUserToken;
+
+var sensitiveData = ["_id", "Password", "Type", "Tokens"];
 
 function doesUserExist(email, password, postback){
     var query = password==null ? { Email: email } : { Email: email, Password: password};
@@ -92,5 +98,34 @@ function getUsersInfo(ids, postback){
             postback(null, users);
         else
             postback(err, null);
+    });
+}
+
+function getUserByAuthToken(token, postback){
+    db_manager.users.find({
+        "Tokens": {
+            $elemMatch : {
+                "Info": token,
+                "Expiration": { $gt: moment().valueOf()}
+            }
+        }
+    }).toArray(function(err, user){
+        if(err == null && user.length > 0){
+            user[0].Token = token;
+            postback(null, user[0]);
+        } else
+            postback(true, null);
+    })
+}
+
+function updateUserToken(user, token, postback){
+    db_manager.users.update({
+        _id: user._id,
+        Tokens: {
+            $elemMatch: {Info: { $eq:token}}
+        }
+    }, {$set: { "Tokens.$.Expiration": moment().add(1, "hour").valueOf() }
+    }, function(err, doc){
+        postback(false, true);
     });
 }

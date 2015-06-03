@@ -10,6 +10,7 @@ exports.generateInvalidResponse = generateInvalidResponse;
 exports.generateObjectIDArray = generateObjectIDArray;
 exports.filterData = filterData;
 exports.makeRequest = makeRequest;
+exports.deleteUnnecessaryProperties = deleteUnnecessaryProperties;
 
 function generateValidResponse(data){
     return {
@@ -81,4 +82,12 @@ function mkDirRecursive(dirpath) {
                     throw new Error(e);
             }
     }
+}
+
+function deleteUnnecessaryProperties(document, properties){
+    for(var i= 0,prop;prop=properties[i];i++){
+        if(document.hasOwnProperty(prop))
+            delete document[prop];
+    }
+    return document;
 }

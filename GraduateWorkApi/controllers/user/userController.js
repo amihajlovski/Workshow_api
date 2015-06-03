@@ -6,9 +6,10 @@ var error_messages = require("../../configuration/error_messages.js");
 var model = require("../../models/models.js");
 var configuration = require("../../configuration/configuration.js");
 var unirest = require('unirest');
+var guid = require("guid");
 
 var avatar_path = configuration.content.APP_PATH + 'public/data/users/$id/avatar/avatar.jpg';
-var sensitiveInfo = ["_id", "Type", "Password", "Tokens"];
+var sensitiveInfo = ["Type", "Password", "Tokens"];
 
 //Manager
 exports.managerRegister = managerRegister;
@@ -20,6 +21,7 @@ exports.artistLogin = artistLogin;
 
 //Common
 exports.getUserInfoByUserIDs = getUserInfoByUserIDs;
+exports.getUserByToken = getUserByToken;
 
 function artistLogin(req, res) {
     req.isArtist = true;
@@ -133,7 +135,7 @@ function createNewUserAndProcessAuthToken(newUser, req, res) {
     newUser.isManager = req.isManager;
     model.user.addNewUser(newUser, function (err, user) {
         if (err == null) {
-            var pictureURL = newUser.social == 'facebook' ? newUser.picture.data.url : newUser.picture;
+            var pictureURL = newUser.social == 'facebook' ? configuration.content.FACEBOOK_IMAGE.replace("$id", newUser.id) : newUser.picture;
             utilities.makeRequest(pictureURL, avatar_path.replace('$id', user.ops[0]._id));
             generateAuthTokenSession(user.ops[0], res);
         } else
@@ -153,4 +155,19 @@ function getUserInfoByUserIDs(req, res) {
                 return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_NO_USERS_FOUND));
         })
     }
+}
+
+function getUserByToken(req, res){
+
+    if(!req.headers.hasOwnProperty("authtoken") || !guid.isGuid(req.headers.authtoken))
+        return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_INVALID_TOKEN));
+
+    var token = req.headers.authtoken;
+    model.user.getUserByAuthToken(token, function(err, user){
+        if(err && user==null){
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_INVALID_TOKEN));
+        } else {
+            return res.json(utilities.generateValidResponse(utilities.deleteUnnecessaryProperties(user, sensitiveInfo)));
+        }
+    });
 }

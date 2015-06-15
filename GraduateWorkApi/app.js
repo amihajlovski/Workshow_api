@@ -10,6 +10,7 @@ var app = express();
 var port = process.env.PORT || 1337;
 var fileUpload = require('./utilities/file_upload.js');
 var socketIOServer = null;
+var dbManager = require("./models/db_manager.js");
 
 allowCors();
 

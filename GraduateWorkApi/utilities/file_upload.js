@@ -46,7 +46,7 @@ function onConnection(socket) {
     //socket.on('Start', function (data) {
     //    onSocketStartVideoUpload(data, socket);
     //});
-    socket.on('Upload', function (data) {
+    socket.on('UploadTemp', function (data) {
         onSocketUpload(data, socket);
     });
     //socket.on('MoveTemp', function (data) {
@@ -104,8 +104,8 @@ function onSocketStartVideoUpload(data, socket) { //data contains the variables 
     });
 };
 
-function openTempFolderLocation(postback) {
-    fs.open(tempFolder, 'a', 0755, function (err, fd) {
+function openTempFolderLocation(imageName, postback) {
+    fs.open(tempFolder + imageName, 'a', 0755, function (err, fd) {
         if (err) {
             return postback(err, null);
         } else {
@@ -116,9 +116,8 @@ function openTempFolderLocation(postback) {
 
 function onSocketUpload(data, socket) {
     var Name = data['Name'];
-    var blockSize = 65536; //524288;
-    var maxBufferSize = 5242880;//10485760;
-    openTempFolderLocation(function (err, fd) {
+    var imageName = socket.userID + Name;
+    openTempFolderLocation(imageName, function (err, fd) {
         if (err == null) {
             Files[socket.userID + Name] = {
                 Handler: fd,
@@ -131,34 +130,16 @@ function onSocketUpload(data, socket) {
             };
             Files[socket.userID + Name]['Downloaded'] += data['Data'].length;
             Files[socket.userID + Name]['Data'] += data['Data'];
-            console.log("DOWNLOADED:", Files[socket.userID + Name]['Downloaded'])
-            console.log("FILESIZE: ", Files[socket.userID + Name]['FileSize']);
-            if (Files[socket.userID + Name]['Downloaded'] >= Files[socket.userID + Name]['FileSize']) //If File is Fully Uploaded
-            {
-                console.log('File uploaded', socket.userID + Name);
-                fs.write(Files[socket.userID + Name]['Handler'], Files[socket.userID + Name]['Data'], null, 'Binary', function (err, Writen) {
-                    console.log(err, Writen);
-                    console.log('file written');
-                    //fileUploadComplete(err, Writen, Name, socket, data);
-                });
-            } else if (Files[socket.userID + Name]['Data'].length > maxBufferSize) { //If the Data Buffer reaches 10MB
-                console.log('first else');
-                fs.write(Files[socket.userID + Name]['Handler'], Files[socket.userID + Name]['Data'], null, 'Binary', function (err, Writen) {
-                    Files[socket.userID + Name]['Data'] = ""; //Reset The Buffer
-                    //var Place = Files[socket.userID+Name]['Downloaded'] / blockSize;
-                    var Place = Files[socket.userID + Name]['Downloaded'];
-                    var Percent = (Files[socket.userID + Name]['Downloaded'] / Files[socket.userID + Name]['FileSize']) * 100;
-                    socket.emit('MoreData', {'Place': Place, 'Percent': Percent, tempName: socket.userID + Name});
-                });
-            } else {
-                console.log('last else');
-//        var Place = Files[socket.userID+Name]['Downloaded'] / blockSize;
-                var Place = Files[socket.userID + Name]['Downloaded'];
-                var Percent = (Files[socket.userID + Name]['Downloaded'] / Files[socket.userID + Name]['FileSize']) * 100;
-                socket.emit('MoreData', {'Place': Place, 'Percent': Percent, tempName: socket.userID + Name});
-            }
+            fs.write(Files[socket.userID + Name]['Handler'], Files[socket.userID + Name]['Data'], null, 'Binary', function (err, Writen) {
+                if(err==null){
+                    console.log('File ' + socket.userID + Name + ' written to "temp" dir.');
+                    socket.emit('Done', {Image: relativeTempFolder + socket.userID + Name});
+                } else {
+                    socket.emit('Error', {Message: 'Error writing file.'});
+                }
+            });
         } else {
-            console.log('error fd', err);
+            socket.emit('Error', {Message: 'Error opening directory.'});
         }
     });
 }

@@ -1,28 +1,35 @@
 {
-  "name" : "basicApi",
-  "version" : "0.0.1",
-  "main" : "./app.js",
-  "author" : {
-    "name" : "Aleksandar Mihajlovski",
-    "email" : "a.mihajlovski91@gmail.com"
+  "name": "GraduateWorkApi",
+  "version": "0.0.1",
+  "main": "./app.js",
+  "author": {
+    "name": "Aleksandar Mihajlovski",
+    "email": "a.mihajlovski91@gmail.com"
   },
-  "keywords" : [ ],
-  "licenses" : {
-    "type" : "none"
+  "keywords": [],
+  "licenses": {
+    "type": "none"
   },
-  "repository" : {
-    "type" : "git",
-    "url" : "git://github.com/amihajlovski/basicApi.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amihajlovski/GraduateWork.git"
   },
-  "bugs" : {
-    "url" : "http://github.com/amihajlovski/basicApi/issues"
+  "bugs": {
+    "url": "https://github.com/amihajlovski/GraduateWork/issues"
   },
-  "dependencies" : {
-    "body-parser" : "^1.6.4",
-    "express" : "^4.8.4",
-    "guid" : "0.0.12",
-    "mongodb" : "latest",
-    "validator" : "latest",
-    "unirest": "latest"
+  "dependencies": {
+    "body-parser": "^1.6.4",
+    "bson": "latest",
+    "express": "^4.8.4",
+    "fs": "0.0.2",
+    "guid": "0.0.12",
+    "http": "0.0.0",
+    "https": "^1.0.0",
+    "moment": "latest",
+    "mongodb": "latest",
+    "path": "^0.11.14",
+    "socket.io": "latest",
+    "unirest": "latest",
+    "validator": "latest"
   }
 }

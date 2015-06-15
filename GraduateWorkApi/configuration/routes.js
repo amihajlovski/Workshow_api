@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var express = require('express');
 var router = express.Router();
 var controller = require("../controllers/controllers.js");
+var authenticate = require("../controllers/authtentication.js");
 
 module.exports = function(app) {
     app.use(bodyParser.urlencoded({ extended: false }));
@@ -16,14 +17,24 @@ module.exports = function(app) {
     app.use('/api', router);
     
     router.use(function(req, res, next) {
-        console.log("Input: " + req.body);
-        next(); 
+        next();
     });
     setUpRoutes(router);
 };
 
 function setUpRoutes(router){
 
+    //Artist
     router.route('/artist/register').post(controller.user.artistRegister);
+    router.route('/artist/login').post(controller.user.artistLogin);
+
+    //Manager
+    router.route('/manager/register').post(controller.user.managerRegister);
+    router.route('/manager/login').post(controller.user.managerLogin);
+
+    //Common
+    router.route('/user/info').get(authenticate.check, controller.user.getUserByToken);
+    //router.route('/user/:userIDs').get(authenticate.check, controller.user.getUserInfoByUserIDs);
+
 
 }

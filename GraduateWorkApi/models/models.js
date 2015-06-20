@@ -4,3 +4,4 @@
 
 
 exports.user = require("../models/user/userModel.js");
+exports.event = require("../models/events/eventsModel.js");

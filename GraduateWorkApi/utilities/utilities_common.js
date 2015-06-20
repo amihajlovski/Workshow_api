@@ -12,6 +12,9 @@ exports.filterData = filterData;
 exports.makeRequest = makeRequest;
 exports.deleteUnnecessaryProperties = deleteUnnecessaryProperties;
 exports.mkDirRecursive = mkDirRecursive;
+exports.checkValidRequestProperties = checkValidRequestProperties;
+exports.removeFileIfExists = removeFileIfExists;
+exports.safeCheckIfFileExists = safeCheckIfFileExists;
 
 function generateValidResponse(data){
     return {
@@ -107,4 +110,34 @@ function mkDirRecursive(dirpath) {
                     throw new Error(e);
             }
     }
+}
+
+function removeFileIfExists(filename){
+    try{
+        if(fs.existsSync(path.normalize(filename))){
+            fs.unlinkSync(path.normalize(filename));
+            return true;
+        }
+    }catch (err){
+        return false;
+    }
+}
+
+function safeCheckIfFileExists(filename) {
+    try {
+        if (fs.existsSync(path.normalize(filename))) {
+            return true;
+        }
+    } catch (err) {
+        return false;
+    }
+}
+
+function checkValidRequestProperties(properties, req, readFromBody){
+    var object = readFromBody == true ? req.body : req.params;
+    for(var i = 0, prop; prop = properties[i]; i++){
+        if(!object.hasOwnProperty(prop))
+            return false;
+    }
+    return true;
 }

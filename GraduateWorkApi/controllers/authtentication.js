@@ -7,6 +7,7 @@ var model = require("../models/models.js");
 var guid = require("guid");
 
 exports.check = authenticate;
+exports.checkIfManager = checkIfManager;
 exports.authenticateSocket = authenticateSocket;
 
 function authenticate(req, res, next){
@@ -23,6 +24,22 @@ function authenticate(req, res, next){
                 req.User_id = user._id;
                 next();
             });
+        }
+    });
+}
+
+function checkIfManager(req, res, next){
+    if(!req.hasOwnProperty('User_id'))
+        return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_MISSING_USER_ID));
+    model.user.getUsersInfo([req.User_id], function(err, userDoc){
+        if(err==null && userDoc.length>0){
+            var user = userDoc[0];
+            if(user.hasOwnProperty('Manager') && user.Manager==true)
+                next();
+            else
+                return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_MISSING_USER_ID));
+        } else {
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_MISSING_USER_ID));
         }
     });
 }

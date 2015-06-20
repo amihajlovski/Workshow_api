@@ -23,6 +23,7 @@ console.log('Service running on port ' + port + ".");
 require("./configuration/routes")(app);
 socketIOServer = io.listen(app.listen(port));
 fileUpload.setupFileUpload(socketIOServer);
+dbManager.connectToDatabase();
 
 function allowCors(){
     app.all('*', function(req, res, next) {

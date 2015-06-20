@@ -11,10 +11,8 @@ var authenticate = require('../controllers/authtentication.js');
 var Files = {};
 var usersFolder = __dirname + '/../public/data/users/';
 var usersFolderRelative = '/./public/data/users/';
-var portfolioFolder = '/portfolio/';
 var avatarFolder = '/avatar/';
 var eventsFolder = '/events/';
-var eventVideos = '/videos/';
 var eventImages = '/images/';
 
 var tempFolder = __dirname + '/../public/temp/';
@@ -43,66 +41,16 @@ function setupDirectories() {
 }
 
 function onConnection(socket) {
-    //socket.on('Start', function (data) {
-    //    onSocketStartVideoUpload(data, socket);
-    //});
     socket.on('UploadTemp', function (data) {
         onSocketUpload(data, socket);
     });
-    //socket.on('MoveTemp', function (data) {
-    //    onSocketMoveTemp(data, socket);
-    //});
+    socket.on('MoveTemp', function (data) {
+        onSocketMoveTemp(data, socket);
+    });
     //socket.on('DeleteTemp', function (data) {
     //    onSocketDeleteTemp(data, socket);
     //});
 }
-
-function onSocketStartVideoUpload(data, socket) { //data contains the variables that we passed through in the html file
-    var Name = data['Name'];
-    var data = setDataPathAndName(data, socket);
-    if (data.serverRelativePath.indexOf('/undefined/') == -1)
-        utilities.mkDirRecursive(data.serverRelativePath);
-    if (!isTypeAllowed(data)) {
-        socket.emit('Error', {Message: 'File type not allowed.', errorType: 'type'});
-        return;
-    }
-    if (data['Size'] > 209715200) {
-        socket.emit('Error', {Message: 'File size is too large. Max 200MB allowed.', errorType: 'size'});
-        return;
-    }
-
-    Files[socket.userID + Name] = {
-        FileSize: data['Size'],
-        Data: "",
-        Downloaded: 0,
-        serverPath: data.serverPath,
-        serverRelativePath: data.serverRelativePath,
-        serverFileName: data.serverFileName,
-        performanceID: data.performanceID,
-        type: data['type'],
-        keepInTemp: (data.keepInTemp) ? data.keepInTemp : false,
-        conversionState: 'none'
-    };
-    var Place = 0;
-
-    try {
-        var Stat = fs.statSync(tempFolder + socket.userID + Name);
-        if (Stat.isFile()) {
-            Files[socket.userID + Name]['Downloaded'] = Stat.size;
-            Place = Stat.size / 524288;
-        }
-    }
-    catch (er) {
-    } //It's a New File
-    fs.open(tempVideoFolder + socket.userID + Name, 'a', 0755, function (err, fd) {
-        if (err) {
-            console.log(err);
-        } else {
-            Files[socket.userID + Name]['Handler'] = fd; //We store the file handler so we can write to it later
-            socket.emit('MoreData', {'Place': Place, Percent: 0, tempName: socket.userID + Name});
-        }
-    });
-};
 
 function openTempFolderLocation(imageName, postback) {
     fs.open(tempFolder + imageName, 'a', 0755, function (err, fd) {
@@ -128,12 +76,13 @@ function onSocketUpload(data, socket) {
                 keepInTemp: (data.keepInTemp) ? data.keepInTemp : false,
                 conversionState: 'none'
             };
+            Files[socket.userID + Name] = setDataPathAndName(Files[socket.userID + Name], data, socket);
             Files[socket.userID + Name]['Downloaded'] += data['Data'].length;
             Files[socket.userID + Name]['Data'] += data['Data'];
             fs.write(Files[socket.userID + Name]['Handler'], Files[socket.userID + Name]['Data'], null, 'Binary', function (err, Writen) {
                 if(err==null){
                     console.log('File ' + socket.userID + Name + ' written to "temp" dir.');
-                    socket.emit('Done', {Image: relativeTempFolder + socket.userID + Name});
+                    socket.emit('Done', {Image: relativeTempFolder + socket.userID + Name, Name: Name});
                 } else {
                     socket.emit('Error', {Message: 'Error writing file.'});
                 }
@@ -145,28 +94,20 @@ function onSocketUpload(data, socket) {
 }
 
 function onSocketMoveTemp(data, socket) {
-    var Name = "";
-    if (data['Name']) {
-        Name = data['Name'].replace(socket.userID, '');
-    }
+    var Name = data['Name'];
     console.log('moving file ', Name, ' from temp to proper location');
-    if (Files[socket.userID + Name] && utilities.safeCheckIfFileExists(tempVideoFolder + socket.userID + Name)) {
+    if (Files[socket.userID + Name] && utilities.safeCheckIfFileExists(tempFolder + socket.userID + Name)) {
         Files[socket.userID + Name].keepInTemp = false;
-        Files[socket.userID + Name].serverPath = Files[socket.userID + Name].serverPath.replace('/undefined/', '/' + data.performanceID + '/');
-        Files[socket.userID + Name].serverRelativePath = Files[socket.userID + Name].serverRelativePath.replace('/undefined/', '/' + data.performanceID + '/');
-        Files[socket.userID + Name].performanceID = data.performanceID;
+        Files[socket.userID + Name].serverPath = Files[socket.userID + Name].serverPath.replace('/undefined/', '/' + data.eventID + '/');
+        Files[socket.userID + Name].serverRelativePath = Files[socket.userID + Name].serverRelativePath.replace('/undefined/', '/' + data.eventID + '/');
+        Files[socket.userID + Name].eventID = data.eventID;
         utilities.mkDirRecursive(Files[socket.userID + Name].serverRelativePath);
-        var extension = path.extname(Name);
-        if (Files[socket.userID + Name].type.indexOf('Video') > -1 && extension !== '.mp4') {
-            socket.emit('Done', {Image: Files[socket.userID + Name].serverRelativePath.substring(2) + Name.replace(extension, '.mp4') + '.jpg'});
-            convertVideo(path.normalize(tempVideoFolder) + socket.userID + Name, path.normalize(tempVideoFolder) + socket.userID + Name.replace(extension, '.mp4'), Name, socket);
-        } else {
-            var err = function (err) {
-            };
-            var writen = function () {
-            };
-            fileUploadComplete(err, writen, Name, socket, data);
-        }
+        var err = function (err) {
+        };
+        var writen = function () {
+        };
+        uploadToProperFolder(err, writen, Name, socket);
+        //fileUploadComplete(err, writen, Name, socket, data);
     } else {
         console.log('There no such file in temporary buffer.');
         socket.emit('Error', {Message: 'There no such file in temporary buffer.'});
@@ -235,28 +176,19 @@ function convertVideo(inputFileName, outputFileName, Name, socket) {
 }
 
 var uploadToProperFolder = function (err, Writen, Name, socket) {
-    var inputFile = (Files[socket.userID + Name].type.indexOf('Video') > -1) ? path.normalize(tempVideoFolder + socket.userID + Files[socket.userID + Name].serverFileName) : path.normalize(tempVideoFolder + socket.userID + Name);
+    var inputFile = path.normalize(tempFolder + socket.userID + Name);
     fs.rename(inputFile, path.normalize(Files[socket.userID + Name].serverPath + Files[socket.userID + Name].serverFileName), function (err) {
-        if (Files[socket.userID + Name].type == 'performanceVideo') {
-            generateThumbnail(path.normalize(Files[socket.userID + Name].serverPath) + Files[socket.userID + Name].serverFileName, function () {
-            });
-            socket.emit('Done', {Image: Files[socket.userID + Name].serverRelativePath.substring(2) + Name + '.jpg'});
-            utilities.removeFileIfExists(path.normalize(tempVideoFolder) + socket.userID + Name + '.jpg');
-            if (Files[socket.userID + Name].originalName) {
-                utilities.removeFileIfExists(path.normalize(tempVideoFolder) + socket.userID + Files[socket.userID + Name].originalName);
-            }
-        } else {
-            utilities.removeFileIfExists(path.normalize(tempVideoFolder) + socket.userID + Name + '.jpg');
-            socket.emit('Done', {Image: Files[socket.userID + Name].serverRelativePath.substring(2) + Name});
-        }
-        updateUserInfo(socket, Files[socket.userID + Name]);
+        utilities.removeFileIfExists(path.normalize(tempFolder) + socket.userID + Name);
+        console.log('file moved to proper folder')
+        socket.emit('Done', {Image: Files[socket.userID + Name].serverRelativePath.substring(2) + Name});
+        //updateUserInfo(socket, Files[socket.userID + Name]);
     });
 };
 
 var uploadToTempFolder = function (Name, socket) {
     if (Files[socket.userID + Name].type == 'performanceVideo') {
         socket.emit('Done', {
-            'Image': (relativeTempFolder + socket.userID) + Name + '.jpg',
+            Image: (relativeTempFolder + socket.userID) + Name + '.jpg',
             tempName: socket.userID + Name
         });
     } else {
@@ -354,34 +286,19 @@ function objectPositionInArray(dataArray, key, value) {
     return -1;
 }
 
-function setDataPathAndName(data, socket) {
+function setDataPathAndName(file, data, socket) {
     switch (data.type) {
-        case 'performanceVideo':
-            data.serverPath = performersFolder + socket.userID + performancesFolder + data.performanceID + performanceVideos;
-            data.serverRelativePath = performersFolderRelative + socket.userID + performancesFolder + data.performanceID + performanceVideos;
-            data.serverFileName = data.Name;
-            break;
-        case 'portfolio':
-            data.serverPath = performersFolder + socket.userID + portfolioFolder;
-            data.serverRelativePath = performersFolderRelative + socket.userID + portfolioFolder;
-            data.serverFileName = 'portfolio' + path.extname(data['Name']);
-            break;
-        case 'performanceImage':
-            data.serverPath = performersFolder + socket.userID + performancesFolder + data.performanceID + performanceImages;
-            data.serverRelativePath = performersFolderRelative + socket.userID + performancesFolder + data.performanceID + performanceImages;
-            data.serverFileName = data['Name'];
-            break;
-        case 'performanceCoverImage':
-            data.serverPath = performersFolder + socket.userID + performancesFolder + data.performanceID + performanceImages;
-            data.serverRelativePath = performersFolderRelative + socket.userID + performancesFolder + data.performanceID + performanceImages;
-            data.serverFileName = data['Name'];
+        case 'eventCover':
+            file.serverPath = usersFolder + socket.userID + eventsFolder + data.performanceID + eventImages;
+            file.serverRelativePath = usersFolderRelative + socket.userID + eventsFolder + data.performanceID + eventImages;
+            file.serverFileName = data['Name'];
             break;
         case 'avatar':
-            data.serverPath = performersFolder + socket.userID + avatarFolder;
-            data.serverRelativePath = performersFolderRelative + socket.userID + avatarFolder;
-            data.serverFileName = 'avatar.jpg';
+            file.serverPath = usersFolder + socket.userID + avatarFolder;
+            file.serverRelativePath = usersFolderRelative + socket.userID + avatarFolder;
+            file.serverFileName = 'avatar.jpg';
     }
-    return data;
+    return file;
 }
 
 function isTypeAllowed(data) {

@@ -4,3 +4,4 @@
 
 
 exports.user = require("../controllers/user/userController.js");
+exports.event = require("../controllers/events/eventsController.js");

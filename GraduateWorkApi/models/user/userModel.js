@@ -45,7 +45,7 @@ function addNewUser(userInfo, postback){
             postback(null, user);
         else
             postback(err, null);
-    })
+    });
 }
 
 function createUserDocument(user, isArtist, isManager){

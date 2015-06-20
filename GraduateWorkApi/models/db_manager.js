@@ -3,13 +3,17 @@ var MongoClient = require('mongodb').MongoClient;
 var config = require("../configuration/configuration.js");
 
 // Connect to the db
-MongoClient.connect(config.content.DB.URL, function(err, db) {
-    if (!err) {
-        console.log("Connected to \"" + db.databaseName + "\" database.");
-        createMongoDBCollections(db);
-        exports.db = db;
-    }
-});
+exports.connectToDatabase = connectToDatabase;
+
+function connectToDatabase(){
+    MongoClient.connect(config.content.DB.URL, function(err, db) {
+        if (!err) {
+            console.log("Connected to \"" + db.databaseName + "\" database.");
+            createMongoDBCollections(db);
+            exports.db = db;
+        }
+    });
+}
 
 function createMongoDBCollections(db){
     db.createCollection("users", function(err,usersCollection){

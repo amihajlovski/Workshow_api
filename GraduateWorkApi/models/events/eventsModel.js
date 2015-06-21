@@ -10,6 +10,25 @@ var ObjectID = require("mongodb").ObjectId;
 
 exports.saveEvent = saveEvent;
 exports.getUserEvents = getUserEvents;
+exports.getAllEvents = getAllEvents;
+
+function getAllEvents(count, offset, postback){
+    db_manager.events.count(function(err, numberOfEvents){
+        if(err == null && numberOfEvents > 0){
+            var data = {};
+            data.Total = numberOfEvents;
+            db_manager.events.find().limit(count).skip(offset).toArray(function(err, events){
+                if(err==null && events.length > 0) {
+                    data.Events = events;
+                    postback(null, data);
+                } else
+                    postback(err, null);
+            });
+        } else {
+            postback("No events in database", null);
+        }
+    });
+}
 
 function getUserEvents(id, postback){
     db_manager.events.find({'Manager': new ObjectID(id)}).toArray(function(err, events){

@@ -34,9 +34,10 @@ function setUpRoutes(router){
     router.route('/manager/event/').post(authenticate.check, authenticate.checkIfManager, controller.event.postEvent);
     router.route('/manager/:managerID/events').get(authenticate.check, authenticate.checkIfManager, controller.event.getManagerEvents);
 
-
     //Common
+    router.route('/events').get(controller.event.getAllEvents);
     router.route('/user/info').get(authenticate.check, controller.user.getUserByToken);
+
     //router.route('/user/:userIDs').get(authenticate.check, controller.user.getUserInfoByUserIDs);
 
 

@@ -14,5 +14,5 @@ content.RESPONSE_ERROR_MISSING_USER_ID = { "Code" : -7, "Message" : "User ID is 
 //MANAGER
 content.RESPONSE_ERROR_USER_NOT_MANAGER = { "Code" : -50, "Message" : "This is allowed only for managers." };
 
-
-
+//Common
+content.RESPONSE_ERROR_EVENTS_NOT_FOUND = { "Code" : -100, "Message" : "No events found in database." };

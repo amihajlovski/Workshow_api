@@ -6,6 +6,7 @@ var utilities = require("../../utilities/utilities_common.js");
 var error_messages = require("../../configuration/error_messages.js");
 var model = require("../../models/models.js");
 var configuration = require("../../configuration/configuration.js");
+var validator = require("validator");
 
 exports.postEvent = postEvent;
 exports.getManagerEvents = getManagerEvents;
@@ -44,8 +45,8 @@ function getManagerEvents(req, res){
 }
 
 function getAllEvents(req, res){
-    var count = req.query.hasOwnProperty('count') ? req.query.count : 10;
-    var offset = req.query.hasOwnProperty('offset') ? req.query.offset : 0;
+    var count = req.query.hasOwnProperty('count') && validator.isNumeric(req.query.count) ? parseInt(req.query.count) : 6;
+    var offset = req.query.hasOwnProperty('offset') && validator.isNumeric(req.query.offset) ? parseInt(req.query.offset) : 0;
     model.event.getAllEvents(count, offset, function(err, data){
         if(err == null && data != null){
             return res.json(utilities.generateValidResponse(data));

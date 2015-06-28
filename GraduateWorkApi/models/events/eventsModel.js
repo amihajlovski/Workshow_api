@@ -6,28 +6,56 @@ var validator = require("validator");
 var moment = require("moment");
 var utilities = require('../../utilities/utilities_common.js');
 var db_manager = require("../../models/db_manager.js");
+var model = require('../models.js');
 var ObjectID = require("mongodb").ObjectId;
 
 exports.saveEvent = saveEvent;
 exports.getUserEvents = getUserEvents;
 exports.getAllEvents = getAllEvents;
 
-function getAllEvents(count, offset, postback){
-    db_manager.events.find({'Date': {$gt:moment().valueOf()}}).count(function(err, numberOfEvents){
-        if(err == null && numberOfEvents > 0){
-            var data = {};
-            data.Total = numberOfEvents;
-            db_manager.events.find({'Date': {$gt:moment().valueOf()}}).limit(count).skip(offset).sort({'Date': 1}).toArray(function(err, events){
-                if(err==null && events.length > 0) {
-                    data.Events = events;
-                    postback(null, data);
-                } else
-                    postback(err, null);
-            });
-        } else {
-            postback("No events in database", null);
-        }
+function getAllEvents(count, offset, filter, req, postback){
+    generateGetAllEventsQuery(filter, req, function(query){
+        db_manager.events.find(query).count(function(err, numberOfEvents){
+            if(err == null && numberOfEvents > 0){
+                var data = {};
+                data.Total = numberOfEvents;
+                db_manager.events.find(query).limit(count).skip(offset).sort({'Date': 1}).toArray(function(err, events){
+                    if(err==null && events.length > 0) {
+                        data.Events = events;
+                        postback(null, data);
+                    } else
+                        postback(err, null);
+                });
+            } else {
+                postback("No events in database", null);
+            }
+        });
     });
+}
+
+function generateGetAllEventsQuery(filter, req, postback){
+    var query = {};
+    if(filter==0){
+        query.Date = {$gt: moment().valueOf()};
+        return postback(query);
+    } else
+    if(filter==1) {
+        query.Manager = "";
+        model.user.getUserByAuthToken(req.headers.authtoken, function(err, user){
+            if(err==null)
+                query.Manager = user._id;
+            return postback(query);
+        });
+    } else
+    if(filter==2){
+        //get popular events
+    } else
+    if(filter==3){
+        var keyword = req.query.keyword;
+        query.Date = {$gt: moment().valueOf()};
+        query.Keywords = keyword;
+        return postback(query);
+    }
 }
 
 function getUserEvents(id, postback){

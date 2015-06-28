@@ -47,7 +47,9 @@ function getManagerEvents(req, res){
 function getAllEvents(req, res){
     var count = req.query.hasOwnProperty('count') && validator.isNumeric(req.query.count) ? parseInt(req.query.count) : 6;
     var offset = req.query.hasOwnProperty('offset') && validator.isNumeric(req.query.offset) ? parseInt(req.query.offset) : 0;
-    model.event.getAllEvents(count, offset, function(err, data){
+    //0-all, 1-by manager, 2-popular, 3-keywords
+    var filter = req.query.hasOwnProperty('filter') && validator.isNumeric(req.query.filter) ? parseInt(req.query.filter)  : 0;
+    model.event.getAllEvents(count, offset, filter, req, function(err, data){
         if(err == null && data != null){
             return res.json(utilities.generateValidResponse(data));
         } else {

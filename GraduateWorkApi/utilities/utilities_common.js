@@ -15,6 +15,7 @@ exports.mkDirRecursive = mkDirRecursive;
 exports.checkValidRequestProperties = checkValidRequestProperties;
 exports.removeFileIfExists = removeFileIfExists;
 exports.safeCheckIfFileExists = safeCheckIfFileExists;
+exports.clearPropertiesForMultipleObjects = clearPropertiesForMultipleObjects;
 
 function generateValidResponse(data){
     return {
@@ -140,4 +141,14 @@ function checkValidRequestProperties(properties, req, readFromBody){
             return false;
     }
     return true;
+}
+
+function clearPropertiesForMultipleObjects(documentArray, properties){
+    for(var i = 0, prop; prop = properties[i]; i++){
+        for(var j = 0; obj = documentArray[j]; j++){
+            if(obj.hasOwnProperty(prop))
+                delete obj[prop];
+        }
+    }
+    return documentArray;
 }

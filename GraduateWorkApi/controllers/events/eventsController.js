@@ -11,6 +11,7 @@ var validator = require("validator");
 exports.postEvent = postEvent;
 exports.getManagerEvents = getManagerEvents;
 exports.getAllEvents = getAllEvents;
+exports.favoriteEvent = favoriteEvent;
 
 function postEvent(req, res){
     var requiredProperties = ['Title', 'Salary', 'Date', 'Location', 'Description', 'Image', 'Keywords'];
@@ -35,7 +36,6 @@ function getManagerEvents(req, res){
     var requestValid = utilities.checkValidRequestProperties(requiredProperties, req, false);
     if(requestValid){
         var managerID = req.params.managerID;
-        console.log(managerID);
         model.event.getUserEvents(managerID, function(err, events){
             console.log(err, events);
         });
@@ -54,6 +54,42 @@ function getAllEvents(req, res){
             return res.json(utilities.generateValidResponse(data));
         } else {
             return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_EVENTS_NOT_FOUND));
+        }
+    });
+}
+
+function favoriteEvent(req, res){
+    var requiredProperties = ["eventID"];
+    var requestValid = utilities.checkValidRequestProperties(requiredProperties, req, false);
+    if(requestValid){
+        var eventID = req.params.eventID;
+        model.event.getEventByID(eventID, function(err, event){
+            if(err==null){
+                if(!event.hasOwnProperty('Favorited_by'))
+                    event.Favorited_by = [];
+                if(event.Favorited_by.indexOf(req.User_id.toString())===-1){
+                    event.Favorited_by.push(req.User_id.toString());
+                    updateEventDocument(event, res);
+                } else {
+                    var pos = event.Favorited_by.indexOf(req.User_id.toString());
+                    event.Favorited_by.splice(pos, 1);
+                    updateEventDocument(event, res);
+                }
+            } else {
+                return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_EVENTS_NOT_FOUND));
+            }
+        });
+    } else {
+        return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_WRONG_PARAMETERS));
+    }
+}
+
+function updateEventDocument(eventDoc, res){
+    model.event.updateEvent(eventDoc, function(err, event){
+        if(err == null){
+            return res.json(utilities.generateValidResponse());
+        } else {
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
         }
     });
 }

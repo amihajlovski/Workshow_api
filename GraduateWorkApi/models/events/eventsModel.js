@@ -10,8 +10,11 @@ var model = require('../models.js');
 var ObjectID = require("mongodb").ObjectId;
 
 exports.saveEvent = saveEvent;
+exports.updateEvent = updateEvent;
+
 exports.getUserEvents = getUserEvents;
 exports.getAllEvents = getAllEvents;
+exports.getEventByID = getEventByID;
 
 function getAllEvents(count, offset, filter, req, postback){
     generateGetAllEventsQuery(filter, req, function(query){
@@ -21,8 +24,10 @@ function getAllEvents(count, offset, filter, req, postback){
                 data.Total = numberOfEvents;
                 db_manager.events.find(query).limit(count).skip(offset).sort({'Date': 1}).toArray(function(err, events){
                     if(err==null && events.length > 0) {
-                        data.Events = events;
-                        postback(null, data);
+                        addFavoritedProperty(events, req, function(events){
+                            data.Events = utilities.clearPropertiesForMultipleObjects(events, ["Favorited_by"]);
+                            postback(null, data);
+                        })
                     } else
                         postback(err, null);
                 });
@@ -31,6 +36,22 @@ function getAllEvents(count, offset, filter, req, postback){
             }
         });
     });
+}
+
+function addFavoritedProperty(events, req, postback){
+    if(req.headers.hasOwnProperty('authtoken') && req.headers.authtoken !== ''){
+        model.user.getUserByAuthToken(req.headers.authtoken, function(err, user){
+            if(err==null){
+                for(var i = 0, event; event = events[i]; i++)
+                    event.Favorited = event.hasOwnProperty('Favorited_by') && event.Favorited_by.indexOf(user._id.toString())!=-1 ? true : false;
+                return postback(events);
+            }
+        });
+    } else {
+        for(var i = 0, event; event = events[i]; i++)
+            event.Favorited = false;
+        return postback(events);
+    }
 }
 
 function generateGetAllEventsQuery(filter, req, postback){
@@ -92,3 +113,24 @@ function generateEventDocument(obj){
     }
 }
 
+function getEventByID(id, postback){
+    db_manager.events.find({'_id': new ObjectID(id)}).toArray(function(err, event){
+        if(err==null && event.length > 0)
+            postback(null, event[0]);
+        else
+            postback(err, null);
+    });
+}
+
+function updateEvent(eventDoc, postback){
+    db_manager.events.update({
+        '_id': new ObjectID(eventDoc._id)
+    }, {
+        $set: eventDoc
+    }, function(err, event){
+        if(err==null)
+            postback(null, event);
+        else
+            postback(err, null);
+    });
+}

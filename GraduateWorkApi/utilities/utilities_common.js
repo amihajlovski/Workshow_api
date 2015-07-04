@@ -16,6 +16,7 @@ exports.checkValidRequestProperties = checkValidRequestProperties;
 exports.removeFileIfExists = removeFileIfExists;
 exports.safeCheckIfFileExists = safeCheckIfFileExists;
 exports.clearPropertiesForMultipleObjects = clearPropertiesForMultipleObjects;
+exports.generateArrayOfProps = generateArrayOfProps;
 
 function generateValidResponse(data){
     return {
@@ -29,6 +30,16 @@ function generateInvalidResponse(err_obj){
         "Status":{ "Is_valid" : "false" , "Error" : err_obj},
         "Data": null
     };
+}
+
+function generateArrayOfProps(array, prop){
+    var arr = [];
+    for(var i = 0, item; item = array[i]; i++){
+        if(item.hasOwnProperty(prop)) {
+            arr.push(item[prop])
+        }
+    }
+    return arr;
 }
 
 function generateObjectIDArray(ids){

@@ -25,9 +25,14 @@ function getAllEvents(count, offset, filter, req, postback){
                 db_manager.events.find(query).limit(count).skip(offset).sort({'Date': 1}).toArray(function(err, events){
                     if(err==null && events.length > 0) {
                         addFavoritedProperty(events, req, function(events){
-                            data.Events = utilities.clearPropertiesForMultipleObjects(events, ["Favorited_by"]);
-                            postback(null, data);
-                        })
+                            var managersIDs = utilities.generateArrayOfProps(events, 'Manager');
+                            model.user.getUsersInfo(managersIDs, function(err, users){
+                                data.Events =
+                                    mergeUsersInfo(utilities.clearPropertiesForMultipleObjects(events, ["Favorited_by"]), users);
+                                postback(null, data);
+                            });
+
+                        });
                     } else
                         postback(err, null);
                 });
@@ -36,6 +41,18 @@ function getAllEvents(count, offset, filter, req, postback){
             }
         });
     });
+}
+
+function mergeUsersInfo(events, users){
+    for(var i = 0, event; event = events[i]; i++){
+        for(var j = 0, user; user = users[j]; j++){
+            if(event.Manager.toString === user._id.toString) {
+                event.Manager_info = user;
+                break;
+            }
+        }
+    }
+    return events;
 }
 
 function addFavoritedProperty(events, req, postback){
@@ -72,7 +89,7 @@ function generateGetAllEventsQuery(filter, req, postback){
             });
         } else
         if(req.query.hasOwnProperty('userid') && req.query.userid != ""){
-            query.Manager = userid;
+            query.Manager = new ObjectID(req.query.userid);
             return postback(query);
         } else
             return postback(query);

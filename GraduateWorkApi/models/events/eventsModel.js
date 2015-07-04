@@ -57,21 +57,31 @@ function addFavoritedProperty(events, req, postback){
 function generateGetAllEventsQuery(filter, req, postback){
     var query = {};
     if(filter==0){
+        //get all events that happen in future
         query.Date = {$gt: moment().valueOf()};
         return postback(query);
     } else
     if(filter==1) {
+        //get events by user if token exist or userid provided
         query.Manager = "";
-        model.user.getUserByAuthToken(req.headers.authtoken, function(err, user){
-            if(err==null)
-                query.Manager = user._id;
+        if(req.headers.hasOwnProperty('authtoken') && req.headers.authtoken != "") {
+            model.user.getUserByAuthToken(req.headers.authtoken, function (err, user) {
+                if (err == null)
+                    query.Manager = user._id;
+                return postback(query);
+            });
+        } else
+        if(req.query.hasOwnProperty('userid') && req.query.userid != ""){
+            query.Manager = userid;
             return postback(query);
-        });
+        } else
+            return postback(query);
     } else
     if(filter==2){
         //get popular events
     } else
     if(filter==3){
+        //get events by keyword
         var keyword = req.query.keyword;
         query.Date = {$gt: moment().valueOf()};
         query.Keywords = keyword;

@@ -32,14 +32,13 @@ function setUpRoutes(router){
     router.route('/manager/register').post(controller.user.managerRegister);
     router.route('/manager/login').post(controller.user.managerLogin);
     router.route('/manager/event/').post(authenticate.check, authenticate.checkIfManager, controller.event.postEvent);
-    router.route('/manager/:managerID/events').get(authenticate.check, authenticate.checkIfManager, controller.event.getManagerEvents);
+    router.route('/manager/:managerID/events').get(controller.event.getManagerEvents);
 
     //Common
     router.route('/events').get(controller.event.getAllEvents);
     router.route('/events/:eventID/favorite').get(authenticate.check, controller.event.favoriteEvent);
     router.route('/user/info').get(authenticate.check, controller.user.getUserByToken);
-
-    //router.route('/user/:userIDs').get(authenticate.check, controller.user.getUserInfoByUserIDs);
+    router.route('/user/:userIDs').get(controller.user.getUserInfoByUserIDs);
 
 
 }

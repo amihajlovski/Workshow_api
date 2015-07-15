@@ -18,6 +18,8 @@ exports.validateLogin  = validateLogin;
 exports.getUsersInfo = getUsersInfo;
 exports.getUserByAuthToken = getUserByAuthToken;
 exports.updateUserToken = updateUserToken;
+exports.getNewestManagers = getNewestManagers;
+exports.updateUser = updateUser;
 
 var sensitiveData = ["_id", "Password", "Type", "Tokens"];
 
@@ -56,7 +58,8 @@ function createUserDocument(user, isArtist, isManager){
         "Name": user.Name || user.first_name || user.given_name,
         "Surname": user.Surname || user.last_name || user.family_name,
         "Email": user.Email || user.email,
-        "Password": user.Password || null
+        "Password": user.Password || null,
+        "Date_created": moment().valueOf()
     };
 }
 
@@ -127,5 +130,29 @@ function updateUserToken(user, token, postback){
     }, {$set: { "Tokens.$.Expiration": moment().add(1, "hour").valueOf() }
     }, function(err, doc){
         postback(false, true);
+    });
+}
+
+function getNewestManagers(count, postback){
+    db_manager.users.find({'Manager': true}).limit(count).sort({'Date_created': -1}).toArray(function(err, users){
+        if(err==null && users.length > 0)
+            postback(null, users);
+        else
+            postback(err, null);
+    });
+};
+
+function updateUser(userDoc, postback){
+    if(!userDoc.hasOwnProperty('_id'))
+        return postback("Missing document ID.", null);
+    var id = userDoc._id;
+    delete userDoc._id;
+    db_manager.users.update({'_id': new ObjectID(id)}, {
+        $set: userDoc
+    }, function(err, user){
+        if(err==null)
+            postback(null, user);
+        else
+            postback(err, null);
     });
 }

@@ -10,6 +10,7 @@ content.RESPONSE_ERROR_USER_DOESNT_EXIST = { "Code" : -4, "Message" : "User does
 content.RESPONSE_ERROR_NO_USERS_FOUND = { "Code" : -5, "Message" : "No users found satisfying search criteria." };
 content.RESPONSE_ERROR_INVALID_TOKEN = { "Code" : -6, "Message" : "Invalid authentication token." };
 content.RESPONSE_ERROR_MISSING_USER_ID = { "Code" : -7, "Message" : "User ID is missing." };
+content.RESPONSE_ERROR_NOTHING_FOR_UPDATE = { "Code" : -8, "Message" : "User not updated." };
 
 //MANAGER
 content.RESPONSE_ERROR_USER_NOT_MANAGER = { "Code" : -50, "Message" : "This is allowed only for managers." };

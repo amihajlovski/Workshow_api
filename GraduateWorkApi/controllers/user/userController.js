@@ -22,6 +22,8 @@ exports.artistLogin = artistLogin;
 //Common
 exports.getUserInfoByUserIDs = getUserInfoByUserIDs;
 exports.getUserByToken = getUserByToken;
+exports.getNewestManagers = getNewestManagers;
+exports.updateUserDocument = updateUserDocument;
 
 function artistLogin(req, res) {
     req.isArtist = true;
@@ -168,6 +170,32 @@ function getUserByToken(req, res){
             return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_INVALID_TOKEN));
         } else {
             return res.json(utilities.generateValidResponse(utilities.deleteUnnecessaryProperties(user, sensitiveInfo)));
+        }
+    });
+}
+
+function getNewestManagers(req, res){
+    var limit = req.query.hasOwnProperty('count') ? req.query.count : 3;
+    model.user.getNewestManagers(limit, function(err, doc){
+        if(err==null && doc.length>0){
+            var data = {};
+            data.Users = doc;
+            return res.json(utilities.generateValidResponse(data));
+        } else {
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_NO_USERS_FOUND));
+        }
+    });
+}
+
+function updateUserDocument(req, res){
+    var importantProps = ['Name', 'Surname', 'Email', '_id'];
+    if(Object.keys(req.body).length == 0 || !utilities.checkValidRequestProperties(importantProps, req, true))
+        return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_NOTHING_FOR_UPDATE));
+    model.user.updateUser(req.body, function(err, user){
+        if(err == null){
+            return res.json(utilities.generateValidResponse());
+        } else {
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
         }
     });
 }

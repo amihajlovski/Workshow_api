@@ -37,8 +37,10 @@ function setUpRoutes(router){
     //Common
     router.route('/events').get(controller.event.getAllEvents);
     router.route('/events/:eventID/favorite').get(authenticate.check, controller.event.favoriteEvent);
-    router.route('/user/info').get(authenticate.check, controller.user.getUserByToken);
-    router.route('/user/:userIDs').get(controller.user.getUserInfoByUserIDs);
 
+    router.route('/user/info/update').post(authenticate.check, controller.user.updateUserDocument);
+    router.route('/user/info').get(authenticate.check, controller.user.getUserByToken);
+    router.route('/user/newest').get(controller.user.getNewestManagers);
+    router.route('/user/:userIDs').get(controller.user.getUserInfoByUserIDs);
 
 }

@@ -81,16 +81,16 @@ function generateGetAllEventsQuery(filter, req, postback){
     if(filter==1) {
         //get events by user if token exist or userid provided
         query.Manager = "";
+        if(req.query.hasOwnProperty('userid') && req.query.userid != ""){
+            query.Manager = new ObjectID(req.query.userid);
+            return postback(query);
+        } else
         if(req.headers.hasOwnProperty('authtoken') && req.headers.authtoken != "") {
             model.user.getUserByAuthToken(req.headers.authtoken, function (err, user) {
                 if (err == null)
                     query.Manager = user._id;
                 return postback(query);
             });
-        } else
-        if(req.query.hasOwnProperty('userid') && req.query.userid != ""){
-            query.Manager = new ObjectID(req.query.userid);
-            return postback(query);
         } else
             return postback(query);
     } else

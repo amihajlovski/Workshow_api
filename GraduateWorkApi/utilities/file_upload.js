@@ -98,9 +98,11 @@ function onSocketMoveTemp(data, socket) {
     console.log('moving file ', Name, ' from temp to proper location');
     if (Files[socket.userID + Name] && utilities.safeCheckIfFileExists(tempFolder + socket.userID + Name)) {
         Files[socket.userID + Name].keepInTemp = false;
-        Files[socket.userID + Name].serverPath = Files[socket.userID + Name].serverPath.replace('/undefined/', '/' + data.eventID + '/');
-        Files[socket.userID + Name].serverRelativePath = Files[socket.userID + Name].serverRelativePath.replace('/undefined/', '/' + data.eventID + '/');
-        Files[socket.userID + Name].eventID = data.eventID;
+        if(data.eventID){
+            Files[socket.userID + Name].serverPath = Files[socket.userID + Name].serverPath.replace('/undefined/', '/' + data.eventID + '/');
+            Files[socket.userID + Name].serverRelativePath = Files[socket.userID + Name].serverRelativePath.replace('/undefined/', '/' + data.eventID + '/');
+            Files[socket.userID + Name].eventID = data.eventID;
+        }
         utilities.mkDirRecursive(Files[socket.userID + Name].serverRelativePath);
         var err = function (err) {
         };

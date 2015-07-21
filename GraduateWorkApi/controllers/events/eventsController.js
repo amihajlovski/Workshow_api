@@ -12,6 +12,7 @@ exports.postEvent = postEvent;
 exports.getManagerEvents = getManagerEvents;
 exports.getAllEvents = getAllEvents;
 exports.favoriteEvent = favoriteEvent;
+exports.getEventDetails = getEventDetails;
 
 function postEvent(req, res){
     var requiredProperties = ['Title', 'Salary', 'Date', 'Location', 'Description', 'Image', 'Keywords'];
@@ -91,5 +92,20 @@ function updateEventDocument(eventDoc, res){
         } else {
             return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_UNKNOWN));
         }
+    });
+}
+
+function getEventDetails(req, res){
+    var valid = utilities.checkValidRequestProperties(['id'], req, false);
+    if(!valid)
+        return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_WRONG_PARAMETERS));
+    var id = req.params.id;
+    model.event.getEventByID(id, function(err, event){
+        if(err == null){
+            return res.json(utilities.generateValidResponse(event));
+        } else {
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_EVENTS_NOT_FOUND));
+        }
+
     });
 }

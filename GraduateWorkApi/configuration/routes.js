@@ -36,6 +36,7 @@ function setUpRoutes(router){
 
     //Common
     router.route('/events').get(controller.event.getAllEvents);
+    router.route('/event/:id').get(controller.event.getEventDetails);
     router.route('/events/:eventID/favorite').get(authenticate.check, controller.event.favoriteEvent);
 
     router.route('/user/info/update').post(authenticate.check, controller.user.updateUserDocument);

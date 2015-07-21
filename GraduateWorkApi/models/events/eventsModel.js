@@ -142,9 +142,14 @@ function generateEventDocument(obj){
 
 function getEventByID(id, postback){
     db_manager.events.find({'_id': new ObjectID(id)}).toArray(function(err, event){
-        if(err==null && event.length > 0)
-            postback(null, event[0]);
-        else
+        if(err==null && event.length > 0) {
+            db_manager.users.find({'_id': new ObjectID(event[0].Manager)}).toArray(function(err, manager){
+                if(err==null && manager.length > 0){
+                    event[0].Manager_info = manager[0];
+                }
+                postback(null, event[0]);
+            });
+        } else
             postback(err, null);
     });
 }

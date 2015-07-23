@@ -136,7 +136,8 @@ function generateEventDocument(obj){
         Salary: obj.Salary,
         Location: obj.Location.toLowerCase(),
         Manager: obj.Manager,
-        Keywords: obj.Keywords
+        Keywords: obj.Keywords,
+        Artist_type: obj.Artist_type
     }
 }
 

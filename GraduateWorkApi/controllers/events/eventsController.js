@@ -13,9 +13,10 @@ exports.getManagerEvents = getManagerEvents;
 exports.getAllEvents = getAllEvents;
 exports.favoriteEvent = favoriteEvent;
 exports.getEventDetails = getEventDetails;
+exports.increaseViewCount = increaseViewCount;
 
 function postEvent(req, res){
-    var requiredProperties = ['Title', 'Salary', 'Date', 'Location', 'Description', 'Image', 'Keywords'];
+    var requiredProperties = ['Title', 'Salary', 'Date', 'Location', 'Description', 'Image', 'Keywords', "Artist_type"];
     var requestValid = utilities.checkValidRequestProperties(requiredProperties, req, true);
     if(requestValid){
         var eventDoc = req.body;
@@ -106,6 +107,23 @@ function getEventDetails(req, res){
         } else {
             return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_EVENTS_NOT_FOUND));
         }
+    });
+}
 
+function increaseViewCount(req, res){
+    var valid = utilities.checkValidRequestProperties(['eventID'], req, false);
+    if(!valid)
+        return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_WRONG_PARAMETERS));
+    var id = req.params.eventID;
+    model.event.getEventByID(id, function(err, event){
+        if(err == null){
+            var viewCount = !event.hasOwnProperty('View_count') ? 1 : event.View_count + 1;
+            event['View_count'] = viewCount;
+            if(event.hasOwnProperty('Manager_info'))
+                delete event['Manager_info'];
+            updateEventDocument(event, res);
+        } else {
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_EVENTS_NOT_FOUND));
+        }
     });
 }

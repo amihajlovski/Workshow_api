@@ -16,13 +16,15 @@ exports.getUserEvents = getUserEvents;
 exports.getAllEvents = getAllEvents;
 exports.getEventByID = getEventByID;
 
+exports.aplicantExistOnEvent = aplicantExistOnEvent;
+
 function getAllEvents(count, offset, filter, req, postback){
-    generateGetAllEventsQuery(filter, req, function(query){
+    generateGetAllEventsQuery(filter, req, function(query, sort){
         db_manager.events.find(query).count(function(err, numberOfEvents){
             if(err == null && numberOfEvents > 0){
                 var data = {};
                 data.Total = numberOfEvents;
-                db_manager.events.find(query).limit(count).skip(offset).sort({'Date': 1}).toArray(function(err, events){
+                db_manager.events.find(query).limit(count).skip(offset).sort(sort).toArray(function(err, events){
                     if(err==null && events.length > 0) {
                         addFavoritedProperty(events, req, function(events){
                             var managersIDs = utilities.generateArrayOfProps(events, 'Manager');
@@ -73,36 +75,39 @@ function addFavoritedProperty(events, req, postback){
 
 function generateGetAllEventsQuery(filter, req, postback){
     var query = {};
+    var sort = {Date: 1};
     if(filter==0){
         //get all events that happen in future
         query.Date = {$gt: moment().valueOf()};
-        return postback(query);
+        return postback(query, sort);
     } else
     if(filter==1) {
         //get events by user if token exist or userid provided
         query.Manager = "";
         if(req.query.hasOwnProperty('userid') && req.query.userid != ""){
             query.Manager = new ObjectID(req.query.userid);
-            return postback(query);
+            return postback(query, sort);
         } else
         if(req.headers.hasOwnProperty('authtoken') && req.headers.authtoken != "") {
             model.user.getUserByAuthToken(req.headers.authtoken, function (err, user) {
                 if (err == null)
                     query.Manager = user._id;
-                return postback(query);
+                return postback(query, sort);
             });
         } else
-            return postback(query);
+            return postback(query, sort);
     } else
     if(filter==2){
         //get popular events
+        sort = {View_count: -1};
+        return postback(query, sort);
     } else
     if(filter==3){
         //get events by keyword
         var keyword = req.query.keyword;
         query.Date = {$gt: moment().valueOf()};
         query.Keywords = keyword;
-        return postback(query);
+        return postback(query, sort);
     }
 }
 
@@ -166,4 +171,12 @@ function updateEvent(eventDoc, postback){
         else
             postback(err, null);
     });
+}
+
+function aplicantExistOnEvent(aplicants, artistID, postback){
+    for(var i = 0, aplicant; aplicant = aplicants[i]; i++){
+        if(aplicant.ArtistID === artistID)
+            return postback(true)
+    }
+    return postback(false);
 }

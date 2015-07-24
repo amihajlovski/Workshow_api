@@ -14,6 +14,7 @@ exports.getAllEvents = getAllEvents;
 exports.favoriteEvent = favoriteEvent;
 exports.getEventDetails = getEventDetails;
 exports.increaseViewCount = increaseViewCount;
+exports.applyAsArtist = applyAsArtist;
 
 function postEvent(req, res){
     var requiredProperties = ['Title', 'Salary', 'Date', 'Location', 'Description', 'Image', 'Keywords', "Artist_type"];
@@ -122,6 +123,33 @@ function increaseViewCount(req, res){
             if(event.hasOwnProperty('Manager_info'))
                 delete event['Manager_info'];
             updateEventDocument(event, res);
+        } else {
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_EVENTS_NOT_FOUND));
+        }
+    });
+}
+
+function applyAsArtist(req, res){
+    var importantInfo = ['artistID', 'eventID'];
+    var valid = utilities.checkValidRequestProperties(importantInfo, req, false);
+    if(!valid)
+        return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_WRONG_PARAMETERS));
+    var artistID = req.params.artistID;
+    var eventID = req.params.eventID;
+    model.event.getEventByID(eventID, function(err, event){
+        if(err == null){
+            if(!event.hasOwnProperty('Aplicants'))
+                event['Aplicants'] = [];
+            model.event.aplicantExistOnEvent(event.Aplicants, artistID, function(exist){
+                if(!exist){
+                    event.Aplicants.push({ArtistID: artistID});
+                    if(event.hasOwnProperty('Manager_info'))
+                        delete event['Manager_info'];
+                    updateEventDocument(event, res);
+                } else {
+                    return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_ARTIST_ALREADY_EXIST));
+                }
+            });
         } else {
             return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_EVENTS_NOT_FOUND));
         }

@@ -19,3 +19,5 @@ content.RESPONSE_ERROR_USER_NOT_MANAGER = { "Code" : -50, "Message" : "This is a
 content.RESPONSE_ERROR_EVENTS_NOT_FOUND = { "Code" : -100, "Message" : "No events found in database." };
 content.RESPONSE_ERROR_ALREADY_FAVORITED = { "Code" : -101, "Message" : "Event is already favorited by user." };
 
+//ARTIST
+content.RESPONSE_ERROR_ARTIST_ALREADY_EXIST = { "Code" : -150, "Message" : "Artist has already applied for this event." };

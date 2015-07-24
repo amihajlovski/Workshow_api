@@ -27,6 +27,7 @@ function setUpRoutes(router){
     //Artist
     router.route('/artist/register').post(controller.user.artistRegister);
     router.route('/artist/login').post(controller.user.artistLogin);
+    router.route('/artist/:artistID/event/:eventID/apply').get(authenticate.check, authenticate.checkIfArtist, controller.event.applyAsArtist);
 
     //Manager
     router.route('/manager/register').post(controller.user.managerRegister);

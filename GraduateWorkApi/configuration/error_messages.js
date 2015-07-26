@@ -21,3 +21,4 @@ content.RESPONSE_ERROR_ALREADY_FAVORITED = { "Code" : -101, "Message" : "Event i
 
 //ARTIST
 content.RESPONSE_ERROR_ARTIST_ALREADY_EXIST = { "Code" : -150, "Message" : "Artist has already applied for this event." };
+content.RESPONSE_ERROR_ARTIST_ALREADY_CHOSEN = { "Code" : -151, "Message" : "Artist is already chosen for this event." };

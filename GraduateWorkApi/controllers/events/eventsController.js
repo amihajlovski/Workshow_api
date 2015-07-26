@@ -15,6 +15,7 @@ exports.favoriteEvent = favoriteEvent;
 exports.getEventDetails = getEventDetails;
 exports.increaseViewCount = increaseViewCount;
 exports.applyAsArtist = applyAsArtist;
+exports.chooseArtist = chooseArtist;
 
 function postEvent(req, res){
     var requiredProperties = ['Title', 'Salary', 'Date', 'Location', 'Description', 'Image', 'Keywords', "Artist_type"];
@@ -150,6 +151,33 @@ function applyAsArtist(req, res){
                     return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_ARTIST_ALREADY_EXIST));
                 }
             });
+        } else {
+            return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_EVENTS_NOT_FOUND));
+        }
+    });
+}
+
+function chooseArtist(req, res){
+    var importantInfo = ['Artist_id', 'Event_id'];
+    var valid = utilities.checkValidRequestProperties(importantInfo, req, true);
+    if(!valid)
+        return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_WRONG_PARAMETERS));
+    var artistID = req.body.Artist_id;
+    var eventID = req.body.Event_id;
+    model.event.getEventByID(eventID, function(err, event){
+        if(err == null){
+            if(!event.hasOwnProperty('Artist')) {
+                event['Artist'] = {};
+                event.State = "finished";
+                event.Artist = {
+                    ArtistID: artistID
+                };
+                if(event.hasOwnProperty('Manager_info'))
+                    delete event['Manager_info'];
+                updateEventDocument(event, res);
+            } else {
+                return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_ARTIST_ALREADY_CHOSEN));
+            }
         } else {
             return res.json(utilities.generateInvalidResponse(error_messages.content.RESPONSE_ERROR_EVENTS_NOT_FOUND));
         }

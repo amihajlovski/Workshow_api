@@ -33,6 +33,7 @@ function setUpRoutes(router){
     router.route('/manager/register').post(controller.user.managerRegister);
     router.route('/manager/login').post(controller.user.managerLogin);
     router.route('/manager/event/').post(authenticate.check, authenticate.checkIfManager, controller.event.postEvent);
+    router.route('/manager/chooseartist/').post(authenticate.check, authenticate.checkIfManager, controller.event.chooseArtist);
     router.route('/manager/:managerID/events').get(controller.event.getManagerEvents);
 
     //Common

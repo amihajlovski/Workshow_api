@@ -22,6 +22,10 @@ function createMongoDBCollections(db){
         db.createCollection("events", function(err,eventsCollection){
             console.log("Created collection \"events\".");
             exports.events = eventsCollection;
+            db.createCollection("messages", function(err,messagesCollection){
+                console.log("Created collection \"messages\".");
+                exports.messages = messagesCollection;
+            });
         });
     });
 

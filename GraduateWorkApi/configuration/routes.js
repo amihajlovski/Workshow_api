@@ -47,4 +47,6 @@ function setUpRoutes(router){
     router.route('/user/newest').get(controller.user.getNewestManagers);
     router.route('/user/:userIDs').get(controller.user.getUserInfoByUserIDs);
 
+    router.route('/messages/new').post(authenticate.check, controller.messages.postMessage);
+
 }

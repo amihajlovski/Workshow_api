@@ -28,6 +28,7 @@ function setUpRoutes(router){
     router.route('/artist/register').post(controller.user.artistRegister);
     router.route('/artist/login').post(controller.user.artistLogin);
     router.route('/artist/:artistID/event/:eventID/apply').get(authenticate.check, authenticate.checkIfArtist, controller.event.applyAsArtist);
+    router.route('/artist/:artistID/rate').post(authenticate.check, authenticate.checkIfManager, controller.messages.rateArtist);
 
     //Manager
     router.route('/manager/register').post(controller.user.managerRegister);
@@ -49,6 +50,7 @@ function setUpRoutes(router){
 
     router.route('/messages/').get(authenticate.check, controller.messages.getMessages);
     router.route('/messages/new').post(authenticate.check, controller.messages.postMessage);
+    router.route('/messages/:msgID/changestatus').post(authenticate.check, controller.messages.markReadMessage);
     router.route('/messages/:msgID').get(authenticate.check, controller.messages.getMessageByID);
 
 }

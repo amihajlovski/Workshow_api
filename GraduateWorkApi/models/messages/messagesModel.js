@@ -9,6 +9,7 @@ var ObjectID = require("mongodb").ObjectId;
 exports.saveMessage = saveMessage;
 exports.getMessages = getMessages;
 exports.getMessageByID = getMessageByID;
+exports.updateMessageDocument = updateMessageDocument;
 
 function saveMessage(message, postback){
     db_manager.messages.insert(createMessageDocument(message), function(err, msg){
@@ -38,13 +39,15 @@ function createMessageDocument(params){
 function getMessages(params, postback){
     var data = new Object();
     var query = new Object();
+    var sort = new Object();
+    sort.Sent_at = -1;
     query.Receiver_id = params.userID.toString();
     if(params.hasOwnProperty('filter'))
         query.Read = params.filter == 'unread' ? false : true;
     db_manager.messages.find(query).count(function(err, numberOfMessages){
         if(err==null && numberOfMessages>0){
             data.Total = numberOfMessages;
-            db_manager.messages.find(query).limit(params.count).skip(params.offset).toArray(function(err, messages){
+            db_manager.messages.find(query).limit(params.count).skip(params.offset).sort(sort).toArray(function(err, messages){
                 if(err==null && messages.length>0){
                     data.Messages = messages;
                     postback(null, data);
@@ -67,5 +70,20 @@ function getMessageByID(id, receiverID, postback){
             postback(null, message)
         else
             postback("Message not found", null);
+    });
+}
+
+function updateMessageDocument(message, postback){
+    if(!message.hasOwnProperty('_id'))
+        return postback("Missing document ID.", null);
+    var id = message._id;
+    delete message._id;
+    db_manager.messages.update({'_id': new ObjectID(id)}, {
+        $set: message
+    }, function(err, msg){
+        if(err==null)
+            postback(null, msg);
+        else
+            postback(err, null);
     });
 }

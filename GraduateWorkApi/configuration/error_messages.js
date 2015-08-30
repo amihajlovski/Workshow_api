@@ -24,3 +24,5 @@ content.RESPONSE_ERROR_MESSAGE_NOT_FOUND = { "Code" : -102, "Message" : "Message
 //ARTIST
 content.RESPONSE_ERROR_ARTIST_ALREADY_EXIST = { "Code" : -150, "Message" : "Artist has already applied for this event." };
 content.RESPONSE_ERROR_ARTIST_ALREADY_CHOSEN = { "Code" : -151, "Message" : "Artist is already chosen for this event." };
+content.RESPONSE_ERROR_ARTIST_ALREADY_RATED = { "Code" : -152, "Message" : "Artist has already been rated for this event." };
+

@@ -105,8 +105,8 @@ function generateGetAllEventsQuery(filter, req, postback){
     if(filter==3){
         //get events by keyword
         var keyword = req.query.keyword;
-        query.Date = {$gt: moment().valueOf()};
-        query.Keywords = keyword;
+        //query.Date = {$gt: moment().valueOf()};
+        query.Keywords = keyword.toLowerCase();
         return postback(query, sort);
     }
 }
